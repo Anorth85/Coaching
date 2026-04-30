@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Daily Coach</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0e0e0f;
+    --surface: #18181b;
+    --surface2: #222226;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0efe8;
+    --muted: #888780;
+    --accent: #1D9E75;
+    --accent-dim: rgba(29,158,117,0.15);
+    --accent-border: rgba(29,158,117,0.4);
+    --warn: #BA7517;
+    --danger: #E24B4A;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .header { padding: 2rem 1.5rem 1rem; border-bottom: 0.5px solid var(--border); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
+  .logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  .date-display { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  h1 { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
+
+  .tabs { display: flex; border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; }
+  .tab { padding: 0.75rem 1rem; font-size: 13px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .screen { display: none; padding: 1.5rem; }
+  .screen.active { display: block; }
+
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; margin-top: 1.5rem; }
+  .section-label:first-child { margin-top: 0; }
+
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+
+  input[type="number"], input[type="text"], input[type="password"], input[type="url"] {
+    width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius);
+    padding: 0.875rem 1rem; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text);
+    outline: none; transition: border-color 0.15s; margin-bottom: 0.75rem; -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus { border-color: var(--accent-border); }
+  input::placeholder { color: var(--muted); font-size: 12px; }
+
+  textarea {
+    width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius);
+    padding: 0.875rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    resize: vertical; min-height: 80px; outline: none; transition: border-color 0.15s; margin-bottom: 0.75rem;
+  }
+  textarea:focus { border-color: var(--accent-border); }
+  textarea::placeholder { color: var(--muted); }
+
+  .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 1rem; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-top: 0.5rem; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-secondary { width: 100%; background: transparent; color: var(--muted); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: border-color 0.15s, color 0.15s; margin-bottom: 0.75rem; }
+  .btn-secondary:hover { border-color: var(--accent-border); color: var(--text); }
+
+  input[type="file"] { display: none; }
+  .upload-btn { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 1rem 1.25rem; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); transition: border-color 0.15s; margin-bottom: 0.75rem; }
+  .upload-btn:hover { border-color: var(--accent-border); }
+  .upload-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .upload-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+  .upload-meta { flex: 1; text-align: left; }
+  .upload-meta span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .energy-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 0.5rem; }
+  .energy-btn { aspect-ratio: 1; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 15px; cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
+  .energy-btn:hover { border-color: var(--accent-border); color: var(--text); }
+  .energy-btn.selected { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+  .energy-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 1rem; font-family: 'DM Mono', monospace; }
+
+  .weekly-toggle { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; }
+  .toggle-label { font-size: 14px; }
+  .toggle-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .toggle-switch { width: 40px; height: 22px; border-radius: 11px; background: var(--surface2); border: 0.5px solid var(--border2); position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+  .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
+  .toggle-switch.on .toggle-thumb { transform: translateX(18px); background: #fff; }
+  .weekly-fields { display: none; }
+  .weekly-fields.visible { display: block; }
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .fetch-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 0; }
+  .fetch-row input { flex: 1; margin-bottom: 0; }
+  .fetch-btn { background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--accent); border-radius: var(--radius); padding: 0.875rem 1rem; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
+  .fetch-btn:hover { background: rgba(29,158,117,0.25); }
+  .fetch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status-line { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin: 6px 0 0.75rem; min-height: 16px; }
+  .status-line.ok { color: var(--accent); }
+  .status-line.err { color: var(--danger); }
+
+  .daily-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0.75rem; }
+  .total-tile { background: var(--surface2); border-radius: var(--radius-sm); padding: 0.875rem 1rem; }
+  .total-tile-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .total-tile-value { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--text); }
+  .total-tile-unit { font-size: 11px; color: var(--muted); margin-left: 2px; }
+
+  .meal-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .meal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .meal-name { font-size: 14px; font-weight: 500; }
+  .meal-kcal { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); }
+  .meal-macros { display: flex; gap: 12px; }
+  .macro-chip { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .macro-chip strong { color: var(--text); font-weight: 500; }
+  .meal-items { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
+  .meal-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: var(--muted); }
+  .meal-item-name { color: var(--text); flex: 1; padding-right: 8px; }
+
+  .workout-summary { display: flex; flex-direction: column; }
+  .exercise-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
+  .exercise-row:last-child { border-bottom: none; }
+  .exercise-name { color: var(--text); }
+  .exercise-detail { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .pill { display: inline-flex; background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--accent); font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 20px; margin-bottom: 10px; }
+
+  .analysis-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-top: 1rem; }
+  .analysis-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 0.5px solid var(--border); }
+  .analysis-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .analysis-text { font-size: 14px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 1.5px solid var(--accent-dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .history-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; transition: border-color 0.15s; }
+  .history-item:hover { border-color: var(--accent-border); }
+  .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 0.5rem; }
+  .history-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .history-stat { font-size: 12px; color: var(--muted); }
+  .history-stat strong { color: var(--text); font-weight: 500; }
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+  .settings-group { margin-bottom: 1.5rem; }
+  .settings-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+
+  .notice { background: rgba(186,117,23,0.1); border: 0.5px solid rgba(186,117,23,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--warn); margin-bottom: 1rem; line-height: 1.6; }
+
+  select { width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 0.875rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); outline: none; margin-bottom: 0.75rem; appearance: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="logo">Daily Coach</span>
+    <span class="date-display" id="dateDisplay"></span>
+  </div>
+  <h1>Today's report</h1>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('log')">Log</button>
+  <button class="tab" onclick="switchTab('history')">History</button>
+  <button class="tab" onclick="switchTab('settings')">Settings</button>
+</div>
+
+<!-- LOG -->
+<div id="screen-log" class="screen active">
+
+  <div class="weekly-toggle" onclick="toggleRestDay()" style="margin-bottom:1.25rem;">
+    <div>
+      <div class="toggle-label">Rest day</div>
+      <div class="toggle-sub">No training today — skip workout section</div>
+    </div>
+    <div class="toggle-switch" id="restToggle"><div class="toggle-thumb"></div></div>
+  </div>
+
+  <div id="trainingSection">
+  <p class="section-label">Training</p>
+  <label class="upload-btn" for="csvUpload">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="upload-meta">
+      <strong id="csvLabel">Upload Lift4Fit CSV</strong>
+      <span id="csvSub">Export from app → save to Files → upload here</span>
+    </div>
+  </label>
+  <input type="file" id="csvUpload" accept=".csv" onchange="handleCSV(this)">
+
+  <div id="workoutPreview" style="display:none;" class="card">
+    <div class="workout-summary" id="workoutSummaryList"></div>
+  </div>
+
+  </div><!-- /trainingSection -->
+
+    <p class="section-label">Nutrition — FatSecret</p>
+  <label class="upload-btn" for="csvFSUpload">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="upload-meta">
+      <strong id="fsLabel">Upload FatSecret CSV</strong>
+      <span id="fsSub">Export from FatSecret → save to Files → upload here</span>
+    </div>
+  </label>
+  <input type="file" id="csvFSUpload" accept=".csv,text/csv" onchange="handleFSCSV(this)">
+  <div class="status-line" id="fsStatus"></div>
+
+  <div id="nutritionOutput" style="display:none;">
+    <div class="daily-totals" id="dailyTotals"></div>
+    <div id="mealCards"></div>
+  </div>
+
+  <p class="section-label">Steps</p>
+  <input type="number" id="stepsInput" placeholder="Steps today (from Apple Health)" min="0">
+
+  <p class="section-label">Energy level</p>
+  <div class="energy-grid" id="energyGrid"></div>
+  <div class="energy-labels"><span>Very low</span><span>Excellent</span></div>
+
+  <p class="section-label">Comment</p>
+  <textarea id="commentInput" placeholder="Sleep, stress, soreness, anything notable..."></textarea>
+
+  <div class="weekly-toggle" onclick="toggleWeekly()">
+    <div>
+      <div class="toggle-label">Weekly check-in</div>
+      <div class="toggle-sub">Weight & waist — add if measured today</div>
+    </div>
+    <div class="toggle-switch" id="weeklyToggle"><div class="toggle-thumb"></div></div>
+  </div>
+
+  <div class="weekly-fields" id="weeklyFields">
+    <div class="input-row">
+      <input type="number" id="weightInput" placeholder="Weight (kg)" step="0.1">
+      <input type="number" id="waistInput" placeholder="Waist (cm)" step="0.5">
+    </div>
+  </div>
+
+  <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()">Get coaching analysis</button>
+
+  <div id="analysisResult" style="display:none;" class="analysis-box">
+    <div class="analysis-header">
+      <div class="spinner" id="analysisSpinner" style="display:none;"></div>
+      <span class="analysis-label" id="analysisHeaderLabel">Analysis</span>
+    </div>
+    <div class="analysis-text" id="analysisText"></div>
+  </div>
+
+</div>
+
+<!-- HISTORY -->
+<div id="screen-history" class="screen">
+  <p class="section-label">Recent logs</p>
+  <div id="historyList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="screen-settings" class="screen">
+  <div class="notice">Your API key is stored only in this browser on your device. Never share it in chat or email.</div>
+
+  <div class="settings-group">
+    <div class="settings-label">OpenAI API key</div>
+    <input type="password" id="openaiKey" placeholder="sk-proj-..." oninput="saveSettings()">
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-label">History window sent to GPT</div>
+    <select id="historyDays" onchange="saveSettings()">
+      <option value="7">Last 7 days</option>
+      <option value="14" selected>Last 14 days</option>
+      <option value="21">Last 21 days</option>
+      <option value="30">Last 30 days</option>
+    </select>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-label">Coaching system prompt</div>
+    <textarea id="coachPrompt" style="min-height:200px;" placeholder="Your coaching instructions..." oninput="saveSettings()"></textarea>
+  </div>
+
+  <button class="btn-secondary" onclick="clearData()" style="color:var(--danger);border-color:rgba(226,75,74,0.3);">Clear all local data</button>
+</div>
+
+<script>
+const DB_KEY = 'dailycoach_v2';
+
+function getDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || { logs: [], settings: {} }; }
+  catch(e) { return { logs: [], settings: {} }; }
+}
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function loadSettings() {
+  const s = getDB().settings || {};
+  if (s.openaiKey) document.getElementById('openaiKey').value = s.openaiKey;
+  if (s.historyDays) document.getElementById('historyDays').value = s.historyDays;
+  document.getElementById('coachPrompt').value = s.coachPrompt || defaultPrompt();
+}
+
+function saveSettings() {
+  const db = getDB();
+  db.settings = {
+    openaiKey: document.getElementById('openaiKey').value.trim(),
+    historyDays: document.getElementById('historyDays').value,
+    coachPrompt: document.getElementById('coachPrompt').value.trim(),
+  };
+  saveDB(db);
+}
+
+function switchTab(name) {
+  ['log','history','settings'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === name);
+  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+let weeklyOn = false;
+function toggleWeekly() {
+  weeklyOn = !weeklyOn;
+  document.getElementById('weeklyToggle').classList.toggle('on', weeklyOn);
+  document.getElementById('weeklyFields').classList.toggle('visible', weeklyOn);
+}
+
+let isRestDay = false;
+function toggleRestDay() {
+  isRestDay = !isRestDay;
+  document.getElementById('restToggle').classList.toggle('on', isRestDay);
+  document.getElementById('trainingSection').style.display = isRestDay ? 'none' : 'block';
+  if (isRestDay) { todayWorkout = null; }
+}
+
+
+function buildEnergyGrid() {
+  const grid = document.getElementById('energyGrid');
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'energy-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      selectedEnergy = i;
+      document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    grid.appendChild(btn);
+  }
+}
+
+let todayWorkout = null;
+let todayMeals = null;
+
+function handleCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = e.target.result.trim().split('\n');
+    const headers = rows[0].split(',');
+    const allRows = rows.slice(1).map(r => {
+      const vals = r.split(',');
+      const obj = {};
+      headers.forEach((h,i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r['Start']);
+
+    if (!allRows.length) {
+      document.getElementById('csvLabel').textContent = 'No sessions found in file';
+      document.getElementById('csvSub').textContent = file.name;
+      return;
+    }
+
+    // Use the most recent session in the file
+    const latestDate = allRows.map(r => r['Start'].split(' ')[0]).sort().pop();
+    const data = allRows.filter(r => r['Start'].startsWith(latestDate));
+    const today = new Date().toISOString().split('T')[0];
+    const dateLabel = latestDate === today ? 'today' : latestDate;
+
+    todayWorkout = data;
+    document.getElementById('csvLabel').textContent = 'Session loaded (' + dateLabel + ')';
+    document.getElementById('csvSub').textContent = file.name + ' · ' + data.length + ' sets';
+    renderWorkoutPreview(data);
+  };
+  reader.readAsText(file);
+}
+
+function renderWorkoutPreview(data) {
+  const exercises = {};
+  data.forEach(row => {
+    const ex = row['Exercise'];
+    if (!ex) return;
+    if (!exercises[ex]) exercises[ex] = { sets:0, maxWeight:0, totalReps:0, topOneRM:0 };
+    exercises[ex].sets++;
+    const w = parseFloat(row['Weight kg']) || 0;
+    const r = parseInt(row[' Reps'] || row['Reps']) || 0;
+    const orm = parseFloat(row['OneRM']) || 0;
+    exercises[ex].totalReps += r;
+    if (w > exercises[ex].maxWeight) exercises[ex].maxWeight = w;
+    if (orm > exercises[ex].topOneRM) exercises[ex].topOneRM = orm;
+  });
+  const list = document.getElementById('workoutSummaryList');
+  list.innerHTML = '';
+  const template = data[0]['Template'] || '';
+  if (template) {
+    const h = document.createElement('div');
+    h.style.marginBottom = '10px';
+    h.innerHTML = `<span class="pill">${template} · Day ${data[0]['Template Day']||''}</span>`;
+    list.appendChild(h);
+  }
+  Object.entries(exercises).forEach(([name, s]) => {
+    const row = document.createElement('div');
+    row.className = 'exercise-row';
+    row.innerHTML = `<span class="exercise-name">${name}</span><span class="exercise-detail">${s.sets} sets · ${s.totalReps} reps${s.maxWeight > 0 ? ' · ' + s.maxWeight + 'kg top' : ''}</span>`;
+    list.appendChild(row);
+  });
+  document.getElementById('workoutPreview').style.display = 'block';
+}
+
+function handleFSCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('fsLabel').textContent = 'Reading...';
+  document.getElementById('fsSub').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseFatSecretCSV(e.target.result);
+    if (parsed && parsed.meals.length > 0) {
+      todayMeals = parsed;
+      renderNutrition(parsed.meals, parsed.totals);
+      document.getElementById('fsLabel').textContent = 'Nutrition loaded';
+      document.getElementById('fsSub').textContent = file.name + ' · ' + parsed.meals.length + ' meals';
+      setFsStatus('Loaded — ' + parsed.meals.length + ' meals, ' + Math.round(parsed.totals.kcal) + ' kcal', 'ok');
+    } else {
+      document.getElementById('fsLabel').textContent = 'Could not parse CSV';
+      setFsStatus('Make sure you exported the detailed food diary CSV', 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseFatSecretCSV(text) {
+  const parseNum = s => parseFloat((s||'').replace(',','.').replace(/"/g,'')) || 0;
+  const MEAL_NAMES = new Set(['Frukost','Lunch','Middag','Middag 2','Snacks/Annat','Snacks','Breakfast','Dinner','Supper']);
+
+  const lines = text.split(/\r?\n/);
+  const meals = [];
+  let currentMeal = null;
+
+  for (const rawLine of lines) {
+    // Skip comment/header lines
+    if (rawLine.startsWith('#') || rawLine.trim() === '') continue;
+    if (rawLine.startsWith('Datum') || rawLine.startsWith('Totalt')) continue;
+
+    // Parse CSV fields (handle quoted values)
+    const fields = [];
+    let field = '', inQuote = false;
+    for (const ch of rawLine) {
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { fields.push(field.trim()); field = ''; }
+      else { field += ch; }
+    }
+    fields.push(field.trim());
+
+    const name = fields[0];
+    const indent = (rawLine.match(/^ +/) || [''])[0].length;
+
+    // Skip portion lines (indent 3+, no numeric data)
+    if (indent >= 3) continue;
+
+    // Skip the date summary row (indent 0, not a meal name, has a date-like name)
+    if (indent === 0 && !MEAL_NAMES.has(name.trim())) continue;
+
+    const mealName = name.trim();
+
+    // Indent 1 = meal heading
+    if (indent === 1 && MEAL_NAMES.has(mealName)) {
+      currentMeal = {
+        name: mealName,
+        kcal: parseNum(fields[1]),
+        fat: parseNum(fields[2]),
+        carbs: parseNum(fields[4]),
+        protein: parseNum(fields[7]),
+        items: [],
+      };
+      meals.push(currentMeal);
+      continue;
+    }
+
+    // Indent 2 = food item
+    if (indent === 2 && currentMeal && fields.length > 1) {
+      currentMeal.items.push({
+        name: mealName,
+        kcal: parseNum(fields[1]),
+        protein: parseNum(fields[7]),
+        carbs: parseNum(fields[4]),
+      });
+    }
+  }
+
+  if (!meals.length) return null;
+
+  const totals = meals.reduce((acc, m) => {
+    acc.kcal += m.kcal; acc.fat += m.fat;
+    acc.carbs += m.carbs; acc.protein += m.protein;
+    return acc;
+  }, { kcal:0, fat:0, carbs:0, protein:0 });
+
+  return { meals, totals };
+}
+
+function setFsStatus(msg, type) {
+  const el = document.getElementById('fsStatus');
+  el.textContent = msg;
+  el.className = 'status-line' + (type ? ' ' + type : '');
+}
+
+function loadPDFJS() {
+  return new Promise((resolve, reject) => {
+    if (window.pdfjsLib) { resolve(window.pdfjsLib); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+function parseFatSecretText(text) {
+  const MEAL_NAMES = new Set(['Frukost','Lunch','Middag','Middag 2','Snacks/Annat','Snacks','Breakfast','Dinner','Supper']);
+  const parseNum = s => parseFloat((s||'').replace(',','.')) || 0;
+
+  function extractNums(line) {
+    return (line.match(/\d+[,\.]\d+|\d+/g) || []).map(parseNum);
+  }
+
+  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+
+  // Split into meal segments
+  const segments = [];
+  let current = null;
+  for (const line of lines) {
+    if (MEAL_NAMES.has(line)) {
+      if (current) segments.push(current);
+      current = { name: line, numlines: [] };
+      continue;
+    }
+    if (!current) continue;
+    const nums = extractNums(line);
+    if (nums.length >= 7) current.numlines.push(nums);
+  }
+  if (current) segments.push(current);
+  if (!segments.length) return null;
+
+  // For each segment pick the subtotal:
+  // largest kcal candidate under 1500 (excludes grand total line)
+  const meals = segments.map(seg => {
+    if (!seg.numlines.length) return null;
+    const valid = seg.numlines.filter(n => n[0] < 1500);
+    const best = (valid.length ? valid : seg.numlines)
+      .reduce((a, b) => b[0] > a[0] ? b : a);
+    // cols: kcal fat sat carb fib sug prot
+    return { name: seg.name, kcal: best[0], fat: best[1], carbs: best[3], protein: best[6] };
+  }).filter(Boolean);
+
+  const totals = meals.reduce((acc, m) => {
+    acc.kcal += m.kcal; acc.fat += m.fat; acc.carbs += m.carbs; acc.protein += m.protein;
+    return acc;
+  }, { kcal:0, fat:0, carbs:0, protein:0 });
+
+  return { meals, totals };
+}
+
+function parsePDFText(buffer) {
+  // Extract readable strings from PDF binary
+  const bytes = new Uint8Array(buffer);
+  let text = '';
+  for (let i = 0; i < bytes.length; i++) {
+    const c = bytes[i];
+    if (c >= 32 && c < 127) text += String.fromCharCode(c);
+    else if (c === 10 || c === 13) text += '\n';
+  }
+
+  // Also try UTF-8 decode for Swedish characters
+  try {
+    const decoded = new TextDecoder('latin1').decode(buffer);
+    text = decoded;
+  } catch(e) {}
+
+  const mealNames = ['Frukost', 'Lunch', 'Middag', 'Middag 2', 'Snacks/Annat', 'Snacks', 'Breakfast', 'Dinner', 'Supper'];
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+  const meals = [];
+  let current = null;
+  const parseNum = s => parseFloat((s||'').replace(',','.')) || 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Detect meal heading
+    if (mealNames.includes(line)) {
+      current = { name: line, items: [], kcal: 0, fat: 0, carbs: 0, protein: 0 };
+      meals.push(current);
+      continue;
+    }
+
+    if (!current) continue;
+
+    // "Totalt X X X X X X X" — meal subtotal line
+    const totalMatch = line.match(/^Totalt\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)/);
+    if (totalMatch) {
+      current.kcal    = parseNum(totalMatch[1]);
+      current.fat     = parseNum(totalMatch[2]);
+      current.carbs   = parseNum(totalMatch[4]);
+      current.protein = parseNum(totalMatch[7]);
+      current = null;
+      continue;
+    }
+
+    // Food item lines: "Name  kcal fat sat carbs sugar fiber protein"
+    const itemMatch = line.match(/^(.+?)\s{2,}([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s*$/);
+    if (itemMatch) {
+      current.items.push({
+        name: itemMatch[1].trim(),
+        kcal: parseNum(itemMatch[2]),
+        protein: parseNum(itemMatch[8]),
+        carbs: parseNum(itemMatch[5]),
+      });
+    }
+  }
+
+  if (!meals.length) return null;
+
+  // If meal totals weren't parsed from "Totalt" lines, sum items
+  meals.forEach(m => {
+    if (!m.kcal && m.items.length) {
+      m.kcal    = m.items.reduce((s,i) => s + i.kcal, 0);
+      m.protein = m.items.reduce((s,i) => s + i.protein, 0);
+      m.carbs   = m.items.reduce((s,i) => s + i.carbs, 0);
+    }
+  });
+
+  const totals = meals.reduce((acc, m) => {
+    acc.kcal += m.kcal; acc.fat += m.fat;
+    acc.carbs += m.carbs; acc.protein += m.protein;
+    return acc;
+  }, { kcal:0, fat:0, carbs:0, protein:0 });
+
+  return { meals, totals };
+}
+
+function renderNutrition(meals, totals) {
+  document.getElementById('dailyTotals').innerHTML = `
+    <div class="total-tile"><div class="total-tile-label">Calories</div><div class="total-tile-value">${Math.round(totals.kcal)}<span class="total-tile-unit">kcal</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Protein</div><div class="total-tile-value">${Math.round(totals.protein)}<span class="total-tile-unit">g</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Carbs</div><div class="total-tile-value">${Math.round(totals.carbs)}<span class="total-tile-unit">g</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Fat</div><div class="total-tile-value">${Math.round(totals.fat)}<span class="total-tile-unit">g</span></div></div>
+  `;
+  document.getElementById('mealCards').innerHTML = meals.map(m => `
+    <div class="meal-card">
+      <div class="meal-header">
+        <span class="meal-name">${m.name}</span>
+        <span class="meal-kcal">${Math.round(m.kcal)} kcal</span>
+      </div>
+      <div class="meal-macros">
+        <span class="macro-chip">P <strong>${Math.round(m.protein)}g</strong></span>
+        <span class="macro-chip">K <strong>${Math.round(m.carbs)}g</strong></span>
+        <span class="macro-chip">F <strong>${Math.round(m.fat)}g</strong></span>
+      </div>
+      ${m.items.length ? `<div class="meal-items">${m.items.map(i => `<div class="meal-item"><span class="meal-item-name">${i.name}</span><span>${Math.round(i.kcal)} kcal</span></div>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('nutritionOutput').style.display = 'block';
+}
+
+function buildWorkoutText(data) {
+  if (!data || !data.length) return 'No training today.';
+  const exercises = {};
+  data.forEach(row => {
+    const ex = row['Exercise'];
+    if (!ex) return;
+    if (!exercises[ex]) exercises[ex] = [];
+    exercises[ex].push({
+      reps: parseInt(row[' Reps'] || row['Reps']) || 0,
+      weight: parseFloat(row['Weight kg']) || 0,
+      amrap: (row['Is Amrap Set']||'').trim() === 'Y',
+      oneRM: parseFloat(row['OneRM']) || 0,
+    });
+  });
+  const start = data[0]['Start'];
+  const end = data[0]['End'];
+  const t1 = start ? start.split(' ')[1]?.substring(0,5) : '';
+  const t2 = end ? end.split(' ')[1]?.substring(0,5) : '';
+  let out = `Program: ${data[0]['Template']} Day ${data[0]['Template Day']}`;
+  if (t1) out += `\nTime: ${t1}–${t2}`;
+  Object.entries(exercises).forEach(([name, sets]) => {
+    const weighted = sets.filter(s => s.weight > 0);
+    const top = weighted.length ? weighted.reduce((a,b) => b.oneRM > a.oneRM ? b : a) : sets[0];
+    out += `\n${name}: ${sets.length} sets`;
+    if (top && top.weight > 0) out += `, top set ${top.reps}×${top.weight}kg${top.amrap?' (AMRAP)':''}, est. 1RM ${Math.round(top.oneRM)}kg`;
+  });
+  return out;
+}
+
+function buildNutritionText(mealsData) {
+  if (!mealsData) return 'Nutrition not logged.';
+  const { meals, totals } = mealsData;
+  let out = `Totalt: ${Math.round(totals.kcal)} kcal, ${Math.round(totals.protein)}g protein, ${Math.round(totals.carbs)}g kolhydrater, ${Math.round(totals.fat)}g fett\n\nMåltider:`;
+  meals.forEach(m => {
+    out += `\n\n${m.name}: ${Math.round(m.kcal)} kcal — P ${Math.round(m.protein)}g, K ${Math.round(m.carbs)}g, F ${Math.round(m.fat)}g`;
+    if (m.items.length) out += '\n  ' + m.items.map(i => i.name).join(', ');
+  });
+  return out;
+}
+
+async function runAnalysis() {
+  const db = getDB();
+  const s = db.settings || {};
+
+  if (!s.openaiKey) { alert('Add your OpenAI API key in Settings first.'); switchTab('settings'); return; }
+  if (!selectedEnergy) { alert('Select your energy level (1–10).'); return; }
+  if (!isRestDay && !todayWorkout) { alert('Upload today\'s Lift4Fit CSV, or toggle Rest day if you didn\'t train.'); return; }
+
+  const today = new Date().toISOString().split('T')[0];
+  const steps = document.getElementById('stepsInput').value || 'not recorded';
+  const comment = document.getElementById('commentInput').value || '';
+  const weight = weeklyOn ? document.getElementById('weightInput').value : null;
+  const waist = weeklyOn ? document.getElementById('waistInput').value : null;
+
+  const historyDays = parseInt(s.historyDays || 14);
+  const recentLogs = (db.logs || [])
+    .filter(l => { const d = new Date(l.date), c = new Date(); c.setDate(c.getDate()-historyDays); return d >= c && l.date !== today; })
+    .slice(-historyDays);
+
+  let historyText = '';
+  if (recentLogs.length) {
+    historyText = '\n\n--- LOGGHISTORIK SENASTE ' + historyDays + ' DAGARNA ---\n';
+    recentLogs.forEach(l => {
+      historyText += `\n${l.date}: Energi ${l.energy}/10, Steg ${l.steps}`;
+      if (l.totals) historyText += `, ${Math.round(l.totals.kcal)} kcal, ${Math.round(l.totals.protein)}g protein`;
+      if (l.weight) historyText += `, Vikt ${l.weight}kg`;
+      if (l.waist) historyText += `, Midja ${l.waist}cm`;
+      if (l.workoutSummary) historyText += `\n  Träning: ${l.workoutSummary}`;
+      if (l.comment) historyText += `\n  Kommentar: ${l.comment}`;
+    });
+  }
+
+  const userMessage = `Dagens logg (${today}):
+
+TRÄNING:
+${isRestDay ? 'Vilodag — inget träningspass idag.' : buildWorkoutText(todayWorkout)}
+
+KOST:
+${buildNutritionText(todayMeals)}
+
+Steg: ${steps}
+Energinivå: ${selectedEnergy}/10
+${comment ? 'Kommentar: ' + comment : ''}
+${weight ? 'Vikt: ' + weight + ' kg' : ''}
+${waist ? 'Midja: ' + waist + ' cm' : ''}
+${historyText}
+
+Ge en analys av dagens data. Fokusera särskilt på timing av kolhydrater och protein i relation till träningspassets tidpunkt.`;
+
+  document.getElementById('analysisResult').style.display = 'block';
+  document.getElementById('analysisSpinner').style.display = 'inline-block';
+  document.getElementById('analysisHeaderLabel').textContent = 'Analyserar...';
+  document.getElementById('analysisText').textContent = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('analysisResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.openaiKey },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        stream: false,
+        messages: [
+          { role: 'system', content: s.coachPrompt || defaultPrompt() },
+          { role: 'user', content: userMessage },
+        ],
+      }),
+    });
+
+    if (!resp.ok) {
+      const e = await resp.json();
+      throw new Error(e.error?.message || 'OpenAI error ' + resp.status);
+    }
+
+    const json = await resp.json();
+    const fullText = json.choices?.[0]?.message?.content || '';
+
+    document.getElementById('analysisSpinner').style.display = 'none';
+    document.getElementById('analysisHeaderLabel').textContent = 'Analys · ' + today;
+    document.getElementById('analysisText').textContent = fullText;
+
+    const todayLog = {
+      date: today,
+      restDay: isRestDay,
+      energy: selectedEnergy,
+      steps,
+      totals: todayMeals?.totals || null,
+      workoutSummary: todayWorkout ? buildWorkoutText(todayWorkout).split('\n').slice(0,2).join(' ') : null,
+      comment,
+      weight: weight || null,
+      waist: waist || null,
+      analysis: fullText,
+    };
+
+    const idx = db.logs.findIndex(l => l.date === today);
+    if (idx >= 0) db.logs[idx] = todayLog;
+    else db.logs.push(todayLog);
+    if (db.logs.length > 90) db.logs = db.logs.slice(-90);
+    saveDB(db);
+
+  } catch(err) {
+    document.getElementById('analysisSpinner').style.display = 'none';
+    document.getElementById('analysisHeaderLabel').textContent = 'Fel';
+    document.getElementById('analysisText').textContent = err.message;
+  }
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+function renderHistory() {
+  const logs = (getDB().logs || []).slice().reverse();
+  const container = document.getElementById('historyList');
+  if (!logs.length) {
+    container.innerHTML = '<div class="empty-state">Inga loggar ännu.<br>Slutför ditt första dagliga report för att se historik.</div>';
+    return;
+  }
+  container.innerHTML = logs.map(l => `
+    <div class="history-item" onclick="openLog('${l.date}')">
+      <div class="history-date">${l.date}</div>
+      <div class="history-stats">
+        ${l.energy ? `<span class="history-stat">Energi <strong>${l.energy}/10</strong></span>` : ''}
+        ${l.totals ? `<span class="history-stat">Kcal <strong>${Math.round(l.totals.kcal)}</strong></span>` : ''}
+        ${l.totals ? `<span class="history-stat">Protein <strong>${Math.round(l.totals.protein)}g</strong></span>` : ''}
+        ${l.steps ? `<span class="history-stat">Steg <strong>${l.steps}</strong></span>` : ''}
+        ${l.weight ? `<span class="history-stat">Vikt <strong>${l.weight}kg</strong></span>` : ''}
+        ${l.waist ? `<span class="history-stat">Midja <strong>${l.waist}cm</strong></span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openLog(date) {
+  const log = (getDB().logs || []).find(l => l.date === date);
+  if (!log?.analysis) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;overflow-y:auto;padding:1.5rem;';
+  overlay.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;">
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1;">←</button>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);">${log.date}</span>
+    </div>
+    <div style="font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;">${log.analysis}</div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function clearData() {
+  if (confirm('Raderar all data och inställningar. Fortsätt?')) { localStorage.removeItem(DB_KEY); location.reload(); }
+}
+
+function defaultPrompt() {
+  return `Du är en personlig coach inom träning och kost, med fokus på evidensbaserad fettminskning samtidigt som styrka bibehålls eller ökas.
+
+Mål: Sänka kroppsfettprocent till nivå där magmuskler är tydligt synliga, behålla/förbättra styrka i baslyften, optimera kroppskomposition (recomp, inte aggressiv diet).
+
+Bakgrund: Man, 40 år, 184 cm, ~72–73 kg, ~14–16% kroppsfett. Tränar 5/3/1 BBB 4 dagar/vecka. Stillasittande arbete. Badminton ~2 ggr/vecka.
+
+Styrkenivåer: Knäböj ~120 kg, Marklyft ~140 kg, Bänkpress ~80 kg.
+
+Vad du ska göra:
+1. Löpande analys — identifiera mönster i energi, prestation, återhämtning
+2. Skilj på systemisk vs lokal trötthet
+3. Säkerställ hållbart kaloriunderskott, inte för aggressivt
+4. Bevaka styrkan — säg till om belastningen blir ohållbar
+5. Analysera måltidstiming i relation till träningspassets tidpunkt — särskilt kolhydrater och protein pre/post-workout
+6. Var konsekvent, datadriven och rak
+7. Basera slutsatser på trend, inte enstaka dagar
+8. Utmana antaganden när data motiverar det
+
+Format: Tydlig analys av dagens data. Lyft fram det viktigaste. Concis men substantiell.`;
+}
+
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('sv-SE', { weekday: 'short', month: 'short', day: 'numeric' });
+buildEnergyGrid();
+loadSettings();
+</script>
+</body>
+</html>
