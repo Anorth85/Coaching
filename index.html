@@ -145,6 +145,17 @@
   .history-stat strong { color: var(--text); font-weight: 500; }
   .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 14px; line-height: 1.7; }
 
+  .chat-box { margin-top: 1rem; border-top: 0.5px solid var(--border); padding-top: 1rem; }
+  .chat-messages { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
+  .chat-msg { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.65; max-width: 92%; white-space: pre-wrap; }
+  .chat-msg.user { background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--text); align-self: flex-end; }
+  .chat-msg.assistant { background: var(--surface2); border: 0.5px solid var(--border); color: var(--text); align-self: flex-start; }
+  .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+  .chat-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; margin-bottom: 0; font-size: 14px; }
+  .chat-send { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 0.75rem 1rem; color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; line-height: 1; transition: opacity 0.15s; }
+  .chat-send:disabled { opacity: 0.4; }
+  .context-status { background: var(--accent-dim); border: 0.5px solid var(--accent-border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--accent); margin-bottom: 0.75rem; line-height: 1.5; }
+
   .settings-group { margin-bottom: 1.5rem; }
   .settings-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
 
@@ -250,6 +261,14 @@
       <span class="analysis-label" id="analysisHeaderLabel">Analysis</span>
     </div>
     <div class="analysis-text" id="analysisText"></div>
+
+    <div class="chat-box" id="chatBox" style="display:none;">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" placeholder="Ask a follow-up question..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFollowUp();}"></textarea>
+        <button class="chat-send" id="chatSendBtn" onclick="sendFollowUp()">↑</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -284,6 +303,14 @@
     <textarea id="coachPrompt" style="min-height:200px;" placeholder="Your coaching instructions..." oninput="saveSettings()"></textarea>
   </div>
 
+  <div class="settings-group">
+    <div class="settings-label">Long-term coaching context</div>
+    <div id="contextStatus" style="display:none;" class="context-status"></div>
+    <textarea id="oldHistoryInput" style="min-height:100px;" placeholder="Optional: paste your old ChatGPT coaching conversation here to bootstrap long-term memory..." oninput="saveSettings()"></textarea>
+    <button class="btn-secondary" onclick="regenerateContext()">Regenerate coaching context from all logs</button>
+    <div class="status-line" id="contextGenStatus"></div>
+  </div>
+
   <button class="btn-secondary" onclick="clearData()" style="color:var(--danger);border-color:rgba(226,75,74,0.3);">Clear all local data</button>
 </div>
 
@@ -301,14 +328,18 @@ function loadSettings() {
   if (s.openaiKey) document.getElementById('openaiKey').value = s.openaiKey;
   if (s.historyDays) document.getElementById('historyDays').value = s.historyDays;
   document.getElementById('coachPrompt').value = s.coachPrompt || defaultPrompt();
+  if (s.oldHistory) document.getElementById('oldHistoryInput').value = s.oldHistory;
+  updateContextStatus();
 }
 
 function saveSettings() {
   const db = getDB();
   db.settings = {
+    ...db.settings,
     openaiKey: document.getElementById('openaiKey').value.trim(),
     historyDays: document.getElementById('historyDays').value,
     coachPrompt: document.getElementById('coachPrompt').value.trim(),
+    oldHistory: document.getElementById('oldHistoryInput').value.trim(),
   };
   saveDB(db);
 }
@@ -355,6 +386,8 @@ function buildEnergyGrid() {
 
 let todayWorkout = null;
 let todayMeals = null;
+let reportDate = new Date().toISOString().split('T')[0]; // overridden by Lift4Fit session date
+let conversationHistory = []; // followup chat history
 
 function handleCSV(input) {
   const file = input.files[0];
@@ -381,6 +414,7 @@ function handleCSV(input) {
     const data = allRows.filter(r => r['Start'].startsWith(latestDate));
     const today = new Date().toISOString().split('T')[0];
     const dateLabel = latestDate === today ? 'today' : latestDate;
+    reportDate = latestDate; // use session date as master
 
     todayWorkout = data;
     document.getElementById('csvLabel').textContent = 'Session loaded (' + dateLabel + ')';
@@ -729,12 +763,13 @@ async function runAnalysis() {
   if (!selectedEnergy) { alert('Select your energy level (1–10).'); return; }
   if (!isRestDay && !todayWorkout) { alert('Upload today\'s Lift4Fit CSV, or toggle Rest day if you didn\'t train.'); return; }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = reportDate; // use session date as master
   const steps = document.getElementById('stepsInput').value || 'not recorded';
   const comment = document.getElementById('commentInput').value || '';
   const weight = weeklyOn ? document.getElementById('weightInput').value : null;
   const waist = weeklyOn ? document.getElementById('waistInput').value : null;
 
+  const coachingContext = s.coachingContext ? '\n\n--- LÅNGTIDSKONTEXT (sammanfattning av historik) ---\n' + s.coachingContext + '\n--- SLUT LÅNGTIDSKONTEXT ---' : '';
   const historyDays = parseInt(s.historyDays || 14);
   const recentLogs = (db.logs || [])
     .filter(l => { const d = new Date(l.date), c = new Date(); c.setDate(c.getDate()-historyDays); return d >= c && l.date !== today; })
@@ -766,7 +801,7 @@ Energinivå: ${selectedEnergy}/10
 ${comment ? 'Kommentar: ' + comment : ''}
 ${weight ? 'Vikt: ' + weight + ' kg' : ''}
 ${waist ? 'Midja: ' + waist + ' cm' : ''}
-${historyText}
+${historyText}${coachingContext}
 
 Ge en analys av dagens data. Fokusera särskilt på timing av kolhydrater och protein i relation till träningspassets tidpunkt.`;
 
@@ -802,6 +837,15 @@ Ge en analys av dagens data. Fokusera särskilt på timing av kolhydrater och pr
     document.getElementById('analysisSpinner').style.display = 'none';
     document.getElementById('analysisHeaderLabel').textContent = 'Analys · ' + today;
     document.getElementById('analysisText').textContent = fullText;
+
+    // Seed conversation history for followups
+    conversationHistory = [
+      { role: 'system', content: s.coachPrompt || defaultPrompt() },
+      { role: 'user', content: userMessage },
+      { role: 'assistant', content: fullText },
+    ];
+    document.getElementById('chatBox').style.display = 'block';
+    document.getElementById('chatMessages').innerHTML = '';
 
     const todayLog = {
       date: today,
@@ -869,6 +913,127 @@ function openLog(date) {
 
 function clearData() {
   if (confirm('Raderar all data och inställningar. Fortsätt?')) { localStorage.removeItem(DB_KEY); location.reload(); }
+}
+
+async function sendFollowUp() {
+  const input = document.getElementById('chatInput');
+  const question = input.value.trim();
+  if (!question) return;
+
+  const db = getDB();
+  const s = db.settings || {};
+  if (!s.openaiKey) return;
+
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+  input.value = '';
+
+  // Add user message to UI
+  const msgs = document.getElementById('chatMessages');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-msg user';
+  userDiv.textContent = question;
+  msgs.appendChild(userDiv);
+
+  // Add to history
+  conversationHistory.push({ role: 'user', content: question });
+
+  // Placeholder for assistant response
+  const aDiv = document.createElement('div');
+  aDiv.className = 'chat-msg assistant';
+  aDiv.textContent = '...';
+  msgs.appendChild(aDiv);
+  aDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.openaiKey },
+      body: JSON.stringify({ model: 'gpt-4o', stream: false, messages: conversationHistory }),
+    });
+    if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message); }
+    const json = await resp.json();
+    const reply = json.choices?.[0]?.message?.content || '';
+    aDiv.textContent = reply;
+    conversationHistory.push({ role: 'assistant', content: reply });
+    aDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  } catch(err) {
+    aDiv.textContent = 'Error: ' + err.message;
+  }
+  btn.disabled = false;
+}
+
+async function regenerateContext() {
+  const db = getDB();
+  const s = db.settings || {};
+  if (!s.openaiKey) { alert('Add your OpenAI API key first.'); return; }
+
+  const logs = db.logs || [];
+  if (logs.length < 3) { alert('Not enough logs yet — keep logging daily and try again.'); return; }
+
+  const statusEl = document.getElementById('contextGenStatus');
+  statusEl.textContent = 'Generating context from ' + logs.length + ' logs...';
+  statusEl.className = 'status-line';
+
+  const oldHistory = document.getElementById('oldHistoryInput').value.trim();
+
+  let historyDump = logs.map(l => {
+    let line = l.date + ': Energi ' + l.energy + '/10, Steg ' + l.steps;
+    if (l.totals) line += ', ' + Math.round(l.totals.kcal) + ' kcal, ' + Math.round(l.totals.protein) + 'g protein';
+    if (l.weight) line += ', Vikt ' + l.weight + 'kg';
+    if (l.waist) line += ', Midja ' + l.waist + 'cm';
+    if (l.workoutSummary) line += '\n  Träning: ' + l.workoutSummary;
+    if (l.comment) line += '\n  Kommentar: ' + l.comment;
+    if (l.restDay) line += ' [Vilodag]';
+    return line;
+  }).join('\n');
+
+  const prompt = `Du är en AI-coach. Analysera följande tränings- och kosthistorik och skapa en strukturerad sammanfattning som ska användas som långtidskontext för framtida coachning.
+
+Sammanfattningen ska innehålla:
+- Övergripande trender i styrka, energi och kroppskomposition
+- Kalori- och proteintrend
+- Återkommande mönster (bra och dåliga)
+- Viktiga milstolpar eller förändringar
+- Nuläge och riktning
+
+${oldHistory ? 'TIDIGARE COACHNINGSHISTORIK:\n' + oldHistory + '\n\n' : ''}LOGGHISTORIK:\n${historyDump}
+
+Skriv sammanfattningen på svenska, koncist men substantiellt. Max 500 ord.`;
+
+  try {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.openaiKey },
+      body: JSON.stringify({ model: 'gpt-4o', stream: false, messages: [{ role: 'user', content: prompt }] }),
+    });
+    if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message); }
+    const json = await resp.json();
+    const summary = json.choices?.[0]?.message?.content || '';
+
+    db.settings.coachingContext = summary;
+    db.settings.coachingContextDate = new Date().toISOString().split('T')[0];
+    saveDB(db);
+    updateContextStatus();
+    statusEl.textContent = 'Context regenerated — ' + logs.length + ' logs summarized';
+    statusEl.className = 'status-line ok';
+  } catch(err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    statusEl.className = 'status-line err';
+  }
+}
+
+function updateContextStatus() {
+  const db = getDB();
+  const s = db.settings || {};
+  const el = document.getElementById('contextStatus');
+  if (!el) return;
+  if (s.coachingContext) {
+    el.style.display = 'block';
+    el.textContent = 'Long-term context active — generated ' + (s.coachingContextDate || 'unknown') + ' · ' + s.coachingContext.split(' ').length + ' words';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 function defaultPrompt() {
