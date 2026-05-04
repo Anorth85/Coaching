@@ -289,6 +289,12 @@
   </div>
 
   <div class="settings-group">
+    <div class="settings-label">Debug</div>
+    <button class="btn-secondary" onclick="showDebug()">Show what's being sent to GPT</button>
+    <div id="debugOutput" style="display:none;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;margin-top:0.5rem;max-height:300px;overflow-y:auto;"></div>
+  </div>
+
+  <div class="settings-group">
     <div class="settings-label">History window sent to GPT</div>
     <select id="historyDays" onchange="saveSettings()">
       <option value="7">Last 7 days</option>
@@ -1021,6 +1027,22 @@ Skriv sammanfattningen på svenska, koncist men substantiellt. Max 500 ord.`;
     statusEl.textContent = 'Error: ' + err.message;
     statusEl.className = 'status-line err';
   }
+}
+
+function showDebug() {
+  const db = getDB();
+  const s = db.settings || {};
+  const out = {
+    prompt_length: (s.coachPrompt || '').length,
+    prompt_first_100: (s.coachPrompt || defaultPrompt()).substring(0, 100),
+    using_default: !s.coachPrompt,
+    has_coaching_context: !!s.coachingContext,
+    log_count: (db.logs || []).length,
+    openai_key_set: !!(s.openaiKey),
+  };
+  const el = document.getElementById('debugOutput');
+  el.style.display = 'block';
+  el.textContent = JSON.stringify(out, null, 2);
 }
 
 function updateContextStatus() {
