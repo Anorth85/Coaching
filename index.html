@@ -241,7 +241,10 @@
       <span class="report-label">Rapport — klar att klistra in</span>
     </div>
     <div class="report-text" id="reportText"></div>
-    <button class="btn-secondary" id="copyBtn" onclick="copyReport()" style="margin-top:1rem;margin-bottom:0;color:var(--accent);border-color:var(--accent-border);">Kopiera text</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem;">
+      <button class="btn-secondary" id="copyBtn" onclick="copyReport()" style="margin-bottom:0;color:var(--accent);border-color:var(--accent-border);">Kopiera text</button>
+      <a href="chatgpt://" style="display:flex;align-items:center;justify-content:center;background:transparent;color:var(--muted);border:0.5px solid var(--border2);border-radius:var(--radius);padding:0.875rem;font-family:'DM Sans',sans-serif;font-size:14px;text-decoration:none;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='var(--accent-border)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">Öppna ChatGPT</a>
+    </div>
   </div>
 
 </div>
