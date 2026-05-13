@@ -6,162 +6,131 @@
 <title>Daily Coach</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-
   :root {
-    --bg: #0e0e0f;
-    --surface: #18181b;
-    --surface2: #222226;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #f0efe8;
-    --muted: #888780;
-    --accent: #1D9E75;
-    --accent-dim: rgba(29,158,117,0.15);
-    --accent-border: rgba(29,158,117,0.4);
-    --warn: #BA7517;
-    --danger: #E24B4A;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg:#0e0e0f; --surface:#18181b; --surface2:#222226;
+    --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+    --text:#f0efe8; --muted:#888780;
+    --accent:#1D9E75; --accent-dim:rgba(29,158,117,0.15); --accent-border:rgba(29,158,117,0.4);
+    --warn:#BA7517; --danger:#E24B4A;
+    --radius:12px; --radius-sm:8px;
   }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .header { padding:2rem 1.5rem 1rem; border-bottom:0.5px solid var(--border); }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem; }
+  .logo { font-family:'DM Mono',monospace; font-size:13px; color:var(--accent); letter-spacing:0.08em; text-transform:uppercase; }
+  .date-display { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  h1 { font-size:22px; font-weight:300; letter-spacing:-0.02em; }
 
-  .header { padding: 2rem 1.5rem 1rem; border-bottom: 0.5px solid var(--border); }
-  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
-  .logo { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
-  .date-display { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-  h1 { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
+  .tabs { display:flex; border-bottom:0.5px solid var(--border); padding:0 1.5rem; }
+  .tab { padding:0.75rem 1rem; font-size:13px; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none; font-family:'DM Sans',sans-serif; transition:color 0.15s,border-color 0.15s; }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 
-  .tabs { display: flex; border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; }
-  .tab { padding: 0.75rem 1rem; font-size: 13px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Sans', sans-serif; transition: color 0.15s, border-color 0.15s; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .screen { display:none; padding:1.5rem; }
+  .screen.active { display:block; }
 
-  .screen { display: none; padding: 1.5rem; }
-  .screen.active { display: block; }
+  .section-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; margin-top:1.5rem; }
+  .section-label:first-child { margin-top:0; }
 
-  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; margin-top: 1.5rem; }
-  .section-label:first-child { margin-top: 0; }
+  .card { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.75rem; }
 
-  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
-
-  input[type="number"], input[type="text"], input[type="password"], input[type="url"] {
-    width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius);
-    padding: 0.875rem 1rem; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text);
-    outline: none; transition: border-color 0.15s; margin-bottom: 0.75rem; -moz-appearance: textfield;
+  input[type="number"],input[type="text"],input[type="password"],input[type="url"] {
+    width:100%; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius);
+    padding:0.875rem 1rem; font-family:'DM Mono',monospace; font-size:13px; color:var(--text);
+    outline:none; transition:border-color 0.15s; margin-bottom:0.75rem; -moz-appearance:textfield;
   }
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input:focus { border-color: var(--accent-border); }
-  input::placeholder { color: var(--muted); font-size: 12px; }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; }
+  input:focus { border-color:var(--accent-border); }
+  input::placeholder { color:var(--muted); font-size:12px; }
 
   textarea {
-    width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius);
-    padding: 0.875rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
-    resize: vertical; min-height: 80px; outline: none; transition: border-color 0.15s; margin-bottom: 0.75rem;
+    width:100%; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius);
+    padding:0.875rem 1rem; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text);
+    resize:vertical; min-height:80px; outline:none; transition:border-color 0.15s; margin-bottom:0.75rem;
   }
-  textarea:focus { border-color: var(--accent-border); }
-  textarea::placeholder { color: var(--muted); }
+  textarea:focus { border-color:var(--accent-border); }
+  textarea::placeholder { color:var(--muted); }
 
-  .btn-primary { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 1rem; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-top: 0.5rem; }
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { width:100%; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:1rem; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; cursor:pointer; transition:opacity 0.15s,transform 0.1s; margin-top:0.5rem; }
+  .btn-primary:hover { opacity:0.9; }
+  .btn-primary:active { transform:scale(0.98); }
+  .btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
 
-  .btn-secondary { width: 100%; background: transparent; color: var(--muted); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: border-color 0.15s, color 0.15s; margin-bottom: 0.75rem; }
-  .btn-secondary:hover { border-color: var(--accent-border); color: var(--text); }
+  .btn-secondary { width:100%; background:transparent; color:var(--muted); border:0.5px solid var(--border2); border-radius:var(--radius); padding:0.875rem; font-family:'DM Sans',sans-serif; font-size:14px; cursor:pointer; transition:border-color 0.15s,color 0.15s; margin-bottom:0.75rem; }
+  .btn-secondary:hover { border-color:var(--accent-border); color:var(--text); }
 
-  input[type="file"] { display: none; }
-  .upload-btn { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 1rem 1.25rem; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); transition: border-color 0.15s; margin-bottom: 0.75rem; }
-  .upload-btn:hover { border-color: var(--accent-border); }
-  .upload-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--accent-dim); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .upload-icon svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
-  .upload-meta { flex: 1; text-align: left; }
-  .upload-meta span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  input[type="file"] { display:none; }
+  .upload-btn { display:flex; align-items:center; gap:10px; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius); padding:1rem 1.25rem; cursor:pointer; width:100%; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); transition:border-color 0.15s; margin-bottom:0.75rem; }
+  .upload-btn:hover { border-color:var(--accent-border); }
+  .upload-icon { width:32px; height:32px; border-radius:8px; background:var(--accent-dim); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .upload-icon svg { width:16px; height:16px; stroke:var(--accent); fill:none; stroke-width:1.5; }
+  .upload-meta { flex:1; text-align:left; }
+  .upload-meta span { display:block; font-size:11px; color:var(--muted); margin-top:2px; }
 
-  .energy-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 0.5rem; }
-  .energy-btn { aspect-ratio: 1; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 15px; cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
-  .energy-btn:hover { border-color: var(--accent-border); color: var(--text); }
-  .energy-btn.selected { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
-  .energy-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 1rem; font-family: 'DM Mono', monospace; }
+  .energy-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:0.5rem; }
+  .energy-btn { aspect-ratio:1; border-radius:var(--radius-sm); border:0.5px solid var(--border2); background:var(--surface); color:var(--muted); font-family:'DM Mono',monospace; font-size:15px; cursor:pointer; transition:all 0.12s; display:flex; align-items:center; justify-content:center; }
+  .energy-btn:hover { border-color:var(--accent-border); color:var(--text); }
+  .energy-btn.selected { background:var(--accent-dim); border-color:var(--accent-border); color:var(--accent); }
+  .energy-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:1rem; font-family:'DM Mono',monospace; }
 
-  .weekly-toggle { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; }
-  .toggle-label { font-size: 14px; }
-  .toggle-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .toggle-switch { width: 40px; height: 22px; border-radius: 11px; background: var(--surface2); border: 0.5px solid var(--border2); position: relative; transition: background 0.2s; flex-shrink: 0; }
-  .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
-  .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
-  .toggle-switch.on .toggle-thumb { transform: translateX(18px); background: #fff; }
-  .weekly-fields { display: none; }
-  .weekly-fields.visible { display: block; }
-  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.5rem; cursor:pointer; }
+  .toggle-label { font-size:14px; }
+  .toggle-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .toggle-switch { width:40px; height:22px; border-radius:11px; background:var(--surface2); border:0.5px solid var(--border2); position:relative; transition:background 0.2s; flex-shrink:0; }
+  .toggle-switch.on { background:var(--accent); border-color:var(--accent); }
+  .toggle-thumb { position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:var(--muted); transition:transform 0.2s,background 0.2s; }
+  .toggle-switch.on .toggle-thumb { transform:translateX(18px); background:#fff; }
 
-  .fetch-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 0; }
-  .fetch-row input { flex: 1; margin-bottom: 0; }
-  .fetch-btn { background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--accent); border-radius: var(--radius); padding: 0.875rem 1rem; font-family: 'DM Mono', monospace; font-size: 12px; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
-  .fetch-btn:hover { background: rgba(29,158,117,0.25); }
-  .fetch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .weekly-fields { display:none; }
+  .weekly-fields.visible { display:block; }
+  .input-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  .status-line { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin: 6px 0 0.75rem; min-height: 16px; }
-  .status-line.ok { color: var(--accent); }
-  .status-line.err { color: var(--danger); }
+  .workout-summary { display:flex; flex-direction:column; }
+  .exercise-row { display:flex; justify-content:space-between; align-items:baseline; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--border); }
+  .exercise-row:last-child { border-bottom:none; }
+  .exercise-name { color:var(--text); }
+  .exercise-detail { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .pill { display:inline-flex; background:var(--accent-dim); border:0.5px solid var(--accent-border); color:var(--accent); font-size:11px; font-family:'DM Mono',monospace; padding:3px 8px; border-radius:20px; margin-bottom:10px; }
 
-  .daily-totals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0.75rem; }
-  .total-tile { background: var(--surface2); border-radius: var(--radius-sm); padding: 0.875rem 1rem; }
-  .total-tile-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-  .total-tile-value { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; color: var(--text); }
-  .total-tile-unit { font-size: 11px; color: var(--muted); margin-left: 2px; }
+  .daily-totals { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0.75rem; }
+  .total-tile { background:var(--surface2); border-radius:var(--radius-sm); padding:0.875rem 1rem; }
+  .total-tile-label { font-size:11px; color:var(--muted); margin-bottom:4px; }
+  .total-tile-value { font-family:'DM Mono',monospace; font-size:20px; font-weight:500; color:var(--text); }
+  .total-tile-unit { font-size:11px; color:var(--muted); margin-left:2px; }
 
-  .meal-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
-  .meal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-  .meal-name { font-size: 14px; font-weight: 500; }
-  .meal-kcal { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); }
-  .meal-macros { display: flex; gap: 12px; }
-  .macro-chip { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-  .macro-chip strong { color: var(--text); font-weight: 500; }
-  .meal-items { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
-  .meal-item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; color: var(--muted); }
-  .meal-item-name { color: var(--text); flex: 1; padding-right: 8px; }
+  .meal-card { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.75rem; }
+  .meal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; }
+  .meal-name { font-size:14px; font-weight:500; }
+  .meal-kcal { font-family:'DM Mono',monospace; font-size:12px; color:var(--accent); }
+  .meal-macros { display:flex; gap:12px; }
+  .macro-chip { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .macro-chip strong { color:var(--text); font-weight:500; }
+  .meal-items { margin-top:0.75rem; padding-top:0.75rem; border-top:0.5px solid var(--border); }
+  .meal-item { display:flex; justify-content:space-between; font-size:12px; padding:3px 0; color:var(--muted); }
+  .meal-item-name { color:var(--text); flex:1; padding-right:8px; }
 
-  .workout-summary { display: flex; flex-direction: column; }
-  .exercise-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
-  .exercise-row:last-child { border-bottom: none; }
-  .exercise-name { color: var(--text); }
-  .exercise-detail { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-  .pill { display: inline-flex; background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--accent); font-size: 11px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 20px; margin-bottom: 10px; }
+  .status-line { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin:6px 0 0.75rem; min-height:16px; }
+  .status-line.ok { color:var(--accent); }
+  .status-line.err { color:var(--danger); }
 
-  .analysis-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-top: 1rem; }
-  .analysis-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 0.5px solid var(--border); }
-  .analysis-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
-  .analysis-text { font-size: 14px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+  .report-box { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:1.25rem; margin-top:1rem; }
+  .report-header { display:flex; align-items:center; gap:8px; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:0.5px solid var(--border); }
+  .report-label { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); }
+  .report-text { font-size:14px; line-height:1.75; color:var(--text); white-space:pre-wrap; font-family:'DM Mono',monospace; }
 
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 1.5px solid var(--accent-dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .history-item { background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:0.75rem; cursor:pointer; transition:border-color 0.15s; }
+  .history-item:hover { border-color:var(--accent-border); }
+  .history-date { font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); margin-bottom:0.5rem; }
+  .history-stats { display:flex; gap:16px; flex-wrap:wrap; }
+  .history-stat { font-size:12px; color:var(--muted); }
+  .history-stat strong { color:var(--text); font-weight:500; }
+  .empty-state { text-align:center; padding:3rem 1rem; color:var(--muted); font-size:14px; line-height:1.7; }
 
-  .history-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; cursor: pointer; transition: border-color 0.15s; }
-  .history-item:hover { border-color: var(--accent-border); }
-  .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 0.5rem; }
-  .history-stats { display: flex; gap: 16px; flex-wrap: wrap; }
-  .history-stat { font-size: 12px; color: var(--muted); }
-  .history-stat strong { color: var(--text); font-weight: 500; }
-  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .settings-group { margin-bottom:1.5rem; }
+  .settings-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; }
 
-  .chat-box { margin-top: 1rem; border-top: 0.5px solid var(--border); padding-top: 1rem; }
-  .chat-messages { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
-  .chat-msg { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.65; max-width: 92%; white-space: pre-wrap; }
-  .chat-msg.user { background: var(--accent-dim); border: 0.5px solid var(--accent-border); color: var(--text); align-self: flex-end; }
-  .chat-msg.assistant { background: var(--surface2); border: 0.5px solid var(--border); color: var(--text); align-self: flex-start; }
-  .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
-  .chat-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; margin-bottom: 0; font-size: 14px; }
-  .chat-send { background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 0.75rem 1rem; color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; line-height: 1; transition: opacity 0.15s; }
-  .chat-send:disabled { opacity: 0.4; }
-  .context-status { background: var(--accent-dim); border: 0.5px solid var(--accent-border); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--accent); margin-bottom: 0.75rem; line-height: 1.5; }
-
-  .settings-group { margin-bottom: 1.5rem; }
-  .settings-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
-
-  .notice { background: rgba(186,117,23,0.1); border: 0.5px solid rgba(186,117,23,0.3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 12px; color: var(--warn); margin-bottom: 1rem; line-height: 1.6; }
-
-  select { width: 100%; background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 0.875rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); outline: none; margin-bottom: 0.75rem; appearance: none; }
+  select { width:100%; background:var(--surface); border:0.5px solid var(--border2); border-radius:var(--radius); padding:0.875rem 1rem; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); outline:none; margin-bottom:0.75rem; appearance:none; }
 </style>
 </head>
 <body>
@@ -183,7 +152,8 @@
 <!-- LOG -->
 <div id="screen-log" class="screen active">
 
-  <div class="weekly-toggle" onclick="toggleRestDay()" style="margin-bottom:0.5rem;">
+  <!-- Rest day + Badminton toggles -->
+  <div class="toggle-row" onclick="toggleRestDay()">
     <div>
       <div class="toggle-label">Rest day</div>
       <div class="toggle-sub">No training today — skip workout section</div>
@@ -191,7 +161,7 @@
     <div class="toggle-switch" id="restToggle"><div class="toggle-thumb"></div></div>
   </div>
 
-  <div class="weekly-toggle" onclick="toggleBadminton()" style="margin-bottom:1.25rem;">
+  <div class="toggle-row" onclick="toggleBadminton()" style="margin-bottom:1.25rem;">
     <div>
       <div class="toggle-label">Badminton</div>
       <div class="toggle-sub">Played badminton today</div>
@@ -199,26 +169,26 @@
     <div class="toggle-switch" id="badmintonToggle"><div class="toggle-thumb"></div></div>
   </div>
 
+  <!-- Training -->
   <div id="trainingSection">
-  <p class="section-label">Training</p>
-  <label class="upload-btn" for="csvUpload">
-    <div class="upload-icon">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <p class="section-label">Training</p>
+    <label class="upload-btn" for="csvUpload">
+      <div class="upload-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="upload-meta">
+        <strong id="csvLabel">Upload Lift4Fit CSV</strong>
+        <span id="csvSub">Export from app → save to Files → upload here</span>
+      </div>
+    </label>
+    <input type="file" id="csvUpload" accept=".csv" onchange="handleCSV(this)">
+    <div id="workoutPreview" style="display:none;" class="card">
+      <div class="workout-summary" id="workoutSummaryList"></div>
     </div>
-    <div class="upload-meta">
-      <strong id="csvLabel">Upload Lift4Fit CSV</strong>
-      <span id="csvSub">Export from app → save to Files → upload here</span>
-    </div>
-  </label>
-  <input type="file" id="csvUpload" accept=".csv" onchange="handleCSV(this)">
-
-  <div id="workoutPreview" style="display:none;" class="card">
-    <div class="workout-summary" id="workoutSummaryList"></div>
   </div>
 
-  </div><!-- /trainingSection -->
-
-    <p class="section-label">Nutrition — FatSecret</p>
+  <!-- Nutrition -->
+  <p class="section-label">Nutrition — FatSecret</p>
   <label class="upload-btn" for="csvFSUpload">
     <div class="upload-icon">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -236,24 +206,27 @@
     <div id="mealCards"></div>
   </div>
 
+  <!-- Steps -->
   <p class="section-label">Steps</p>
   <input type="number" id="stepsInput" placeholder="Steps today (from Apple Health)" min="0">
 
+  <!-- Energy -->
   <p class="section-label">Energy level</p>
   <div class="energy-grid" id="energyGrid"></div>
   <div class="energy-labels"><span>Very low</span><span>Excellent</span></div>
 
+  <!-- Comment -->
   <p class="section-label">Comment</p>
   <textarea id="commentInput" placeholder="Sleep, stress, soreness, anything notable..."></textarea>
 
-  <div class="weekly-toggle" onclick="toggleWeekly()">
+  <!-- Weekly -->
+  <div class="toggle-row" onclick="toggleWeekly()" style="margin-bottom:0.75rem;">
     <div>
       <div class="toggle-label">Weekly check-in</div>
       <div class="toggle-sub">Weight & waist — add if measured today</div>
     </div>
     <div class="toggle-switch" id="weeklyToggle"><div class="toggle-thumb"></div></div>
   </div>
-
   <div class="weekly-fields" id="weeklyFields">
     <div class="input-row">
       <input type="number" id="weightInput" placeholder="Weight (kg)" step="0.1">
@@ -263,11 +236,11 @@
 
   <button class="btn-primary" id="generateBtn" onclick="generateReport()">Generate report</button>
 
-  <div id="reportResult" style="display:none;" class="analysis-box">
-    <div class="analysis-header">
-      <span class="analysis-label">Rapport — klar att klistra in</span>
+  <div id="reportResult" style="display:none;" class="report-box">
+    <div class="report-header">
+      <span class="report-label">Rapport — klar att klistra in</span>
     </div>
-    <div class="analysis-text" id="reportText"></div>
+    <div class="report-text" id="reportText"></div>
     <button class="btn-secondary" id="copyBtn" onclick="copyReport()" style="margin-top:1rem;margin-bottom:0;color:var(--accent);border-color:var(--accent-border);">Kopiera text</button>
   </div>
 
@@ -281,7 +254,6 @@
 
 <!-- SETTINGS -->
 <div id="screen-settings" class="screen">
-
   <div class="settings-group">
     <div class="settings-label">History window</div>
     <select id="historyDays" onchange="saveSettings()">
@@ -291,6 +263,430 @@
       <option value="30">Last 30 days</option>
     </select>
   </div>
-
   <button class="btn-secondary" onclick="clearData()" style="color:var(--danger);border-color:rgba(226,75,74,0.3);">Clear all local data</button>
 </div>
+
+<script>
+const DB_KEY = 'dailycoach_v2';
+function getDB() { try { return JSON.parse(localStorage.getItem(DB_KEY)) || {logs:[],settings:{}}; } catch(e) { return {logs:[],settings:{}}; } }
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+// ── State ──────────────────────────────────────────────────────────────────
+let selectedEnergy = null;
+let weeklyOn = false;
+let isRestDay = false;
+let hasBadminton = false;
+let todayWorkout = null;
+let todayMeals = null;
+let reportDate = new Date().toISOString().split('T')[0];
+
+// ── Init ───────────────────────────────────────────────────────────────────
+function init() {
+  document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('sv-SE', {weekday:'short',month:'short',day:'numeric'});
+  buildEnergyGrid();
+  loadSettings();
+}
+
+function loadSettings() {
+  const s = getDB().settings || {};
+  if (s.historyDays) document.getElementById('historyDays').value = s.historyDays;
+}
+
+function saveSettings() {
+  const db = getDB();
+  db.settings = { ...db.settings, historyDays: document.getElementById('historyDays').value };
+  saveDB(db);
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  ['log','history','settings'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === name);
+  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ── Toggles ────────────────────────────────────────────────────────────────
+function toggleRestDay() {
+  isRestDay = !isRestDay;
+  document.getElementById('restToggle').classList.toggle('on', isRestDay);
+  document.getElementById('trainingSection').style.display = isRestDay ? 'none' : 'block';
+  if (isRestDay) todayWorkout = null;
+}
+
+function toggleBadminton() {
+  hasBadminton = !hasBadminton;
+  document.getElementById('badmintonToggle').classList.toggle('on', hasBadminton);
+}
+
+function toggleWeekly() {
+  weeklyOn = !weeklyOn;
+  document.getElementById('weeklyToggle').classList.toggle('on', weeklyOn);
+  document.getElementById('weeklyFields').classList.toggle('visible', weeklyOn);
+}
+
+// ── Energy grid ────────────────────────────────────────────────────────────
+function buildEnergyGrid() {
+  const grid = document.getElementById('energyGrid');
+  for (let i = 1; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'energy-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      selectedEnergy = i;
+      document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    grid.appendChild(btn);
+  }
+}
+
+// ── Lift4Fit CSV ───────────────────────────────────────────────────────────
+function handleCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const rows = e.target.result.trim().split('\n');
+    const headers = rows[0].split(',');
+    const allRows = rows.slice(1).map(r => {
+      const vals = r.split(',');
+      const obj = {};
+      headers.forEach((h,i) => obj[h.trim()] = (vals[i]||'').trim());
+      return obj;
+    }).filter(r => r['Start']);
+
+    if (!allRows.length) {
+      document.getElementById('csvLabel').textContent = 'No sessions found in file';
+      document.getElementById('csvSub').textContent = file.name;
+      return;
+    }
+
+    const latestDate = allRows.map(r => r['Start'].split(' ')[0]).sort().pop();
+    const data = allRows.filter(r => r['Start'].startsWith(latestDate));
+    const today = new Date().toISOString().split('T')[0];
+    const dateLabel = latestDate === today ? 'today' : latestDate;
+    reportDate = latestDate;
+
+    todayWorkout = data;
+    document.getElementById('csvLabel').textContent = 'Session loaded (' + dateLabel + ')';
+    document.getElementById('csvSub').textContent = file.name + ' · ' + data.length + ' sets';
+    renderWorkoutPreview(data);
+  };
+  reader.readAsText(file);
+}
+
+function renderWorkoutPreview(data) {
+  const exercises = {};
+  data.forEach(row => {
+    const ex = row['Exercise'];
+    if (!ex) return;
+    if (!exercises[ex]) exercises[ex] = {sets:0,maxWeight:0,totalReps:0};
+    exercises[ex].sets++;
+    const w = parseFloat(row['Weight kg']) || 0;
+    const r = parseInt(row[' Reps'] || row['Reps']) || 0;
+    exercises[ex].totalReps += r;
+    if (w > exercises[ex].maxWeight) exercises[ex].maxWeight = w;
+  });
+  const list = document.getElementById('workoutSummaryList');
+  list.innerHTML = '';
+  const template = data[0]['Template'] || '';
+  if (template) {
+    const h = document.createElement('div');
+    h.style.marginBottom = '10px';
+    h.innerHTML = `<span class="pill">${template} · Day ${data[0]['Template Day']||''}</span>`;
+    list.appendChild(h);
+  }
+  Object.entries(exercises).forEach(([name, s]) => {
+    const row = document.createElement('div');
+    row.className = 'exercise-row';
+    row.innerHTML = `<span class="exercise-name">${name}</span><span class="exercise-detail">${s.sets} sets · ${s.totalReps} reps${s.maxWeight > 0 ? ' · ' + s.maxWeight + 'kg top' : ''}</span>`;
+    list.appendChild(row);
+  });
+  document.getElementById('workoutPreview').style.display = 'block';
+}
+
+// ── FatSecret CSV ──────────────────────────────────────────────────────────
+function handleFSCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('fsLabel').textContent = 'Reading...';
+  document.getElementById('fsSub').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseFatSecretCSV(e.target.result);
+    if (parsed && parsed.meals.length > 0) {
+      todayMeals = parsed;
+      renderNutrition(parsed.meals, parsed.totals);
+      document.getElementById('fsLabel').textContent = 'Nutrition loaded';
+      document.getElementById('fsSub').textContent = file.name + ' · ' + parsed.meals.length + ' meals';
+      setFsStatus('Loaded — ' + parsed.meals.length + ' meals, ' + Math.round(parsed.totals.kcal) + ' kcal', 'ok');
+    } else {
+      document.getElementById('fsLabel').textContent = 'Could not parse CSV';
+      setFsStatus('Make sure you exported the detailed food diary CSV', 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function setFsStatus(msg, type) {
+  const el = document.getElementById('fsStatus');
+  el.textContent = msg;
+  el.className = 'status-line' + (type ? ' ' + type : '');
+}
+
+function parseFatSecretCSV(text) {
+  const parseNum = s => parseFloat((s||'').replace(',','.').replace(/"/g,'')) || 0;
+  const MEAL_NAMES = new Set(['Frukost','Lunch','Middag','Middag 2','Snacks/Annat','Snacks','Breakfast','Dinner','Supper']);
+  const lines = text.split(/\r?\n/);
+  const meals = [];
+  let currentMeal = null;
+
+  for (const rawLine of lines) {
+    if (rawLine.startsWith('#') || rawLine.trim() === '') continue;
+    if (rawLine.startsWith('Datum') || rawLine.startsWith('Totalt')) continue;
+
+    const fields = [];
+    let field = '', inQuote = false;
+    for (const ch of rawLine) {
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { fields.push(field.trim()); field = ''; }
+      else { field += ch; }
+    }
+    fields.push(field.trim());
+
+    const indent = (rawLine.match(/^ +/) || [''])[0].length;
+    const name = fields[0].trim();
+
+    if (indent >= 3) continue;
+    if (indent === 0 && !MEAL_NAMES.has(name)) continue;
+
+    if (indent === 1 && MEAL_NAMES.has(name)) {
+      currentMeal = { name, kcal:parseNum(fields[1]), fat:parseNum(fields[2]), carbs:parseNum(fields[4]), protein:parseNum(fields[7]), items:[] };
+      meals.push(currentMeal);
+      continue;
+    }
+    if (indent === 2 && currentMeal && fields.length > 1) {
+      currentMeal.items.push({ name, kcal:parseNum(fields[1]), protein:parseNum(fields[7]), carbs:parseNum(fields[4]) });
+    }
+  }
+
+  if (!meals.length) return null;
+  const totals = meals.reduce((acc,m) => { acc.kcal+=m.kcal; acc.fat+=m.fat; acc.carbs+=m.carbs; acc.protein+=m.protein; return acc; }, {kcal:0,fat:0,carbs:0,protein:0});
+  return { meals, totals };
+}
+
+function renderNutrition(meals, totals) {
+  document.getElementById('dailyTotals').innerHTML = `
+    <div class="total-tile"><div class="total-tile-label">Calories</div><div class="total-tile-value">${Math.round(totals.kcal)}<span class="total-tile-unit">kcal</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Protein</div><div class="total-tile-value">${Math.round(totals.protein)}<span class="total-tile-unit">g</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Carbs</div><div class="total-tile-value">${Math.round(totals.carbs)}<span class="total-tile-unit">g</span></div></div>
+    <div class="total-tile"><div class="total-tile-label">Fat</div><div class="total-tile-value">${Math.round(totals.fat)}<span class="total-tile-unit">g</span></div></div>`;
+  document.getElementById('mealCards').innerHTML = meals.map(m => `
+    <div class="meal-card">
+      <div class="meal-header"><span class="meal-name">${m.name}</span><span class="meal-kcal">${Math.round(m.kcal)} kcal</span></div>
+      <div class="meal-macros">
+        <span class="macro-chip">P <strong>${Math.round(m.protein)}g</strong></span>
+        <span class="macro-chip">K <strong>${Math.round(m.carbs)}g</strong></span>
+        <span class="macro-chip">F <strong>${Math.round(m.fat)}g</strong></span>
+      </div>
+      ${m.items.length ? `<div class="meal-items">${m.items.map(i => `<div class="meal-item"><span class="meal-item-name">${i.name}</span><span>${Math.round(i.kcal)} kcal</span></div>`).join('')}</div>` : ''}
+    </div>`).join('');
+  document.getElementById('nutritionOutput').style.display = 'block';
+}
+
+// ── Generate report ────────────────────────────────────────────────────────
+function generateReport() {
+  if (!selectedEnergy) { alert('Välj din energinivå (1–10).'); return; }
+  if (!isRestDay && !hasBadminton && !todayWorkout) { alert('Ladda upp Lift4Fit CSV, aktivera Vilodag, eller markera Badminton.'); return; }
+
+  const missing = [];
+  if (!todayMeals) missing.push('Nutrition (FatSecret CSV)');
+  if (!document.getElementById('stepsInput').value) missing.push('Steg');
+  if (!document.getElementById('commentInput').value) missing.push('Kommentar');
+  if (missing.length > 0) {
+    const ok = confirm('Dessa fält är tomma:\n\n• ' + missing.join('\n• ') + '\n\nFortsätt ändå?');
+    if (!ok) return;
+  }
+
+  const today = reportDate;
+  const steps = document.getElementById('stepsInput').value || '—';
+  const comment = document.getElementById('commentInput').value || '—';
+  const weight = weeklyOn ? document.getElementById('weightInput').value : null;
+  const waist = weeklyOn ? document.getElementById('waistInput').value : null;
+
+  const lines = [];
+
+  // Nutrition
+  if (todayMeals) {
+    const t = todayMeals.totals;
+    lines.push('Kalorier: ' + Math.round(t.kcal) + ' kcal');
+    lines.push('Protein: ' + Math.round(t.protein) + ' g');
+    lines.push('Kolhydrater: ' + Math.round(t.carbs) + ' g / Fett: ' + Math.round(t.fat) + ' g');
+  } else {
+    lines.push('Kalorier: —');
+    lines.push('Protein: —');
+    lines.push('Kolhydrater: — / Fett: —');
+  }
+
+  // Training
+  if (hasBadminton && isRestDay) {
+    lines.push('Träning: 1 timmes badminton');
+  } else if (hasBadminton && todayWorkout) {
+    // Both gym and badminton
+    lines.push('Träning (detaljerat):');
+    appendWorkoutLines(lines, todayWorkout);
+    lines.push('  + 1 timmes badminton');
+  } else if (hasBadminton) {
+    lines.push('Träning: 1 timmes badminton');
+  } else if (isRestDay) {
+    lines.push('Träning: Vilodag');
+  } else if (todayWorkout) {
+    lines.push('Träning (detaljerat):');
+    appendWorkoutLines(lines, todayWorkout);
+  }
+
+  lines.push('Steg: ' + steps);
+  lines.push('Energi (1–10): ' + selectedEnergy);
+  lines.push('Kommentar: ' + comment);
+  if (weight) lines.push('Vikt: ' + weight + ' kg');
+  if (waist) lines.push('Midja: ' + waist + ' cm');
+
+  const reportText = lines.join('\n');
+  document.getElementById('reportResult').style.display = 'block';
+  document.getElementById('reportText').textContent = reportText;
+  document.getElementById('reportResult').scrollIntoView({ behavior:'smooth', block:'start' });
+
+  // Save log
+  const db = getDB();
+  const log = { date:today, restDay:isRestDay, badminton:hasBadminton, energy:selectedEnergy, steps, totals:todayMeals?.totals||null, comment, weight:weight||null, waist:waist||null, report:reportText };
+  const idx = db.logs.findIndex(l => l.date === today);
+  if (idx >= 0) db.logs[idx] = log; else db.logs.push(log);
+  if (db.logs.length > 90) db.logs = db.logs.slice(-90);
+  saveDB(db);
+  resetForm();
+}
+
+function appendWorkoutLines(lines, workout) {
+  const exercises = {};
+  workout.forEach(row => {
+    const ex = row['Exercise'];
+    if (!ex) return;
+    if (!exercises[ex]) exercises[ex] = [];
+    const reps = parseInt(row[' Reps'] || row['Reps']) || 0;
+    const weight = parseFloat(row['Weight kg']) || 0;
+    const amrap = (row['Is Amrap Set'] || '').trim() === 'Y';
+    exercises[ex].push({ reps, weight, amrap });
+  });
+  Object.entries(exercises).forEach(([name, sets]) => {
+    const grouped = {};
+    sets.forEach(s => {
+      const key = s.weight + 'kg';
+      if (!grouped[key]) grouped[key] = { weight:s.weight, reps:[], amrap:s.amrap };
+      grouped[key].reps.push(s.reps);
+    });
+    const parts = Object.values(grouped).map(g => {
+      const repStr = g.reps.every(r => r === g.reps[0]) ? g.reps[0] : g.reps.join('/');
+      return g.reps.length + 'x' + repStr + ' ' + g.weight + 'kg' + (g.amrap ? ' (AMRAP)' : '');
+    });
+    lines.push('  ' + name + ': ' + parts.join(', '));
+  });
+}
+
+function copyReport() {
+  const text = document.getElementById('reportText').textContent;
+  const btn = document.getElementById('copyBtn');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Kopierad! ✓';
+    setTimeout(() => btn.textContent = 'Kopiera text', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = 'Kopierad! ✓';
+    setTimeout(() => btn.textContent = 'Kopiera text', 2000);
+  });
+}
+
+// ── Reset form ─────────────────────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('csvUpload').value = '';
+  document.getElementById('csvLabel').textContent = 'Upload Lift4Fit CSV';
+  document.getElementById('csvSub').textContent = 'Export from app → save to Files → upload here';
+  document.getElementById('workoutPreview').style.display = 'none';
+
+  document.getElementById('csvFSUpload').value = '';
+  document.getElementById('fsLabel').textContent = 'Upload FatSecret CSV';
+  document.getElementById('fsSub').textContent = 'Export from FatSecret → save to Files → upload here';
+  setFsStatus('', '');
+  document.getElementById('nutritionOutput').style.display = 'none';
+
+  document.getElementById('stepsInput').value = '';
+  document.getElementById('commentInput').value = '';
+
+  selectedEnergy = null;
+  document.querySelectorAll('.energy-btn').forEach(b => b.classList.remove('selected'));
+
+  weeklyOn = false;
+  document.getElementById('weeklyToggle').classList.remove('on');
+  document.getElementById('weeklyFields').classList.remove('visible');
+  document.getElementById('weightInput').value = '';
+  document.getElementById('waistInput').value = '';
+
+  isRestDay = false;
+  document.getElementById('restToggle').classList.remove('on');
+  document.getElementById('trainingSection').style.display = 'block';
+
+  hasBadminton = false;
+  document.getElementById('badmintonToggle').classList.remove('on');
+
+  todayWorkout = null;
+  todayMeals = null;
+  reportDate = new Date().toISOString().split('T')[0];
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const logs = (getDB().logs || []).slice().reverse();
+  const container = document.getElementById('historyList');
+  if (!logs.length) {
+    container.innerHTML = '<div class="empty-state">Inga loggar ännu.<br>Slutför ditt första dagliga report för att se historik.</div>';
+    return;
+  }
+  container.innerHTML = logs.map(l => `
+    <div class="history-item" onclick="openLog('${l.date}')">
+      <div class="history-date">${l.date}${l.restDay ? ' · Vilodag' : ''}${l.badminton ? ' · Badminton' : ''}</div>
+      <div class="history-stats">
+        ${l.energy ? `<span class="history-stat">Energi <strong>${l.energy}/10</strong></span>` : ''}
+        ${l.totals ? `<span class="history-stat">Kcal <strong>${Math.round(l.totals.kcal)}</strong></span>` : ''}
+        ${l.totals ? `<span class="history-stat">Protein <strong>${Math.round(l.totals.protein)}g</strong></span>` : ''}
+        ${l.steps ? `<span class="history-stat">Steg <strong>${l.steps}</strong></span>` : ''}
+        ${l.weight ? `<span class="history-stat">Vikt <strong>${l.weight}kg</strong></span>` : ''}
+        ${l.waist ? `<span class="history-stat">Midja <strong>${l.waist}cm</strong></span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openLog(date) {
+  const log = (getDB().logs || []).find(l => l.date === date);
+  if (!log?.report) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;overflow-y:auto;padding:1.5rem;';
+  overlay.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;">
+      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;line-height:1;">←</button>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);">${log.date}</span>
+    </div>
+    <div style="font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;font-family:'DM Mono',monospace;">${log.report}</div>`;
+  document.body.appendChild(overlay);
+}
+
+function clearData() {
+  if (confirm('Raderar all data. Fortsätt?')) { localStorage.removeItem(DB_KEY); location.reload(); }
+}
+
+init();
+</script>
+</body>
+</html>
